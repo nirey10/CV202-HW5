@@ -81,10 +81,66 @@ def compute_efficient_3x3_Lattice_Ztemp(Temp):
     return res
 
 
+# ------------------------------------------------------------------------------------------------------------------
+def compute_efficient_generic_Lattice_Ztemp(lattice_size, Temp):
+    y_s = range(pow(lattice_size, 2))
+    y_arr = [0] * pow(lattice_size, 2)
+    res = recursive(lattice_size, lattice_size, Temp, y_arr, 0)
+    return res
 
+def calc(lattice_size, index_arr, Temp):
+    res = 1
+    count = 1
+    for i in range(lattice_size):
+        print(i)
+        res *= G(y2row(index_arr[i], width=lattice_size), Temp)
+        if count < lattice_size:
+            res *= F(y2row(index_arr[i], width=lattice_size), y2row(index_arr[i+1], width=lattice_size), Temp)
+        count += 1
+    return res
 
+def recursive(counter, lattice_size, Temp, index_arr, res):
+    if counter == -1:
+        return calc(lattice_size, index_arr, Temp)
+    for i in range(pow(lattice_size, 2)):
+        index_arr[counter-1] = i
+        res += recursive(counter - 1, lattice_size, Temp, index_arr, res)
+        return res
+# ------------------------------------------------------------------------------------------------------------------
+
+def dynamic_programming(lattice_size, Temp):
+    T_arr = [[] * lattice_size] * (lattice_size-1)
+    res = 0
+    res_vec = [0] * pow(2, lattice_size)
+    for i in range(pow(2, lattice_size)):
+        y1_vector = y2row(i, width=lattice_size)
+        temp_res = recursive_dynamic(lattice_size - 1, lattice_size, Temp, i, T_arr)
+        res += temp_res * G(y1_vector, Temp)
+        res_vec[i] = temp_res
+
+    for T_idx in range(lattice_size-2):
+        print('T' + str(T_idx + 1) + ': ' + str(T_arr[T_idx + 1]))
+    print('T' + str(lattice_size-1) + ': ' + str(res_vec))
+    print('T' + str(lattice_size) + ' = Z: ' + str(res))
+    return res
+
+def recursive_dynamic(counter, lattice_size, Temp, y2, T_arr):
+    y2_vector = y2row(y2, width=lattice_size)
+    res = 0
+    res_vec = [0] * pow(2, lattice_size)
+    if counter is 1:
+        for i in range(pow(2, lattice_size)):
+            y1_vector = y2row(i, width=lattice_size)
+            res += G(y1_vector, Temp) * F(y1_vector, y2_vector, Temp)
+    else:
+        for i in range(pow(2, lattice_size)):
+            y1_vector = y2row(i, width=lattice_size)
+            temp_res = recursive_dynamic(counter - 1, lattice_size, Temp, i, T_arr)
+            res += temp_res * G(y1_vector, Temp) * F(y1_vector, y2_vector, Temp)
+            res_vec[i] = temp_res
+        T_arr[counter-1] = res_vec
+
+    return res
 
 # Testing
-a = np.array([1, -1])
-b = np.array([1,2,3])
-print(compute_3x3_Lattice_Ztemp(1))
+dynamic_programming(2, 1)
