@@ -124,33 +124,71 @@ def get_cond_prob_matrix(prob_k, Z_temp, T_arrays, lattice_size, Temp):
         if prob_k is 1: # for p(y1|y2)
             res_matrix = [[0] * pow(2, lattice_size)] * pow(2, lattice_size)
             for i in range(pow(2, lattice_size)):
+                y1_vector = y2row(i, width=lattice_size)
                 for j in range(pow(2, lattice_size)):
-                    y1_vector = y2row(i, width=lattice_size)
                     y2_vector = y2row(j, width=lattice_size)
                     # notice that i are the rows (y1), j are the columns (y2)
-                    res_matrix[i][j] = F(y1_vector, y2_vector, Temp) * G(y1_vector, Temp) / T_arrays[k][j]
+                    res_matrix[j][i] = F(y1_vector, y2_vector, Temp) * G(y1_vector, Temp) / T_arrays[k][j]
             return res_matrix
         else:
             res_matrix = [[0] * pow(2, lattice_size)] * pow(2, lattice_size)
             for i in range(pow(2, lattice_size)):
+                y1_vector = y2row(i, width=lattice_size)
                 for j in range(pow(2, lattice_size)):
-                    y1_vector = y2row(i, width=lattice_size)
                     y2_vector = y2row(j, width=lattice_size)
                     # notice that i are the rows (y1), j are the columns (y2)
-                    res_matrix[i][j] = F(y1_vector, y2_vector, Temp) * G(y1_vector, Temp) * T_arrays[k-1][i]/ T_arrays[k][j]
+                    res_matrix[j][i] = F(y1_vector, y2_vector, Temp) * G(y1_vector, Temp) * T_arrays[k-1][i]/ T_arrays[k][j]
             return res_matrix
 
 
+def backward_sample(p_arrays, lattice_size):
+    y_arr = [0]*lattice_size
+    y_lattice_size = np.random.choice(pow(2, lattice_size), 1, p=p_arrays[lattice_size-1])
+    y_arr[lattice_size-1] = y_lattice_size[0]
+    for i in range(lattice_size-1):
+        prev_index = y_arr[lattice_size-i - 1]
+        new_rand = np.random.choice(pow(2, lattice_size), 3, p=p_arrays[lattice_size - i - 2][prev_index])
+        y_arr[lattice_size-i - 2] = new_rand[0]
+    return y_arr
+
+def convert_y_arr_to_image(y_arr, lattice_size):
+    image = [[]*lattice_size]*lattice_size
+    index = 0
+    for row in y_arr:
+        row_values = [int(i) for i in list('{0:0b}'.format(row))]
+        missing_zeros = lattice_size - len(row_values)
+        padded_row_values = np.pad(row_values, (missing_zeros, 0), 'constant')
+        image[index] = padded_row_values
+        index += 1
+    np_image = np.array([arr for arr in image])
+    return np_image
+
 # Testing
-lattice_size = 8
+lattice_size = 4
+
+
+'''
+*****READ****
+the code below generates 1 image of the size (lattice_size x lattice_size) and for Temp=1
+if it is reasonable results whats left is to generate images as requested and bunch them with plt.imshow
+'''
+
 Temp = 1
+probability_array = []*lattice_size
 Z_temp, T_arrays = get_T_arrays_and_Ztemp(lattice_size, Temp)
-p12 = get_cond_prob_matrix(1, Z_temp, T_arrays, lattice_size, Temp)
-p23 = get_cond_prob_matrix(2, Z_temp, T_arrays, lattice_size, Temp)
-p34 = get_cond_prob_matrix(3, Z_temp, T_arrays, lattice_size, Temp)
-p45 = get_cond_prob_matrix(4, Z_temp, T_arrays, lattice_size, Temp)
-p56 = get_cond_prob_matrix(5, Z_temp, T_arrays, lattice_size, Temp)
-p67 = get_cond_prob_matrix(6, Z_temp, T_arrays, lattice_size, Temp)
-p78 = get_cond_prob_matrix(7, Z_temp, T_arrays, lattice_size, Temp)
-p8 = get_cond_prob_matrix(8, Z_temp, T_arrays, lattice_size, Temp)
+for i in range(lattice_size):
+    probability_array.append(get_cond_prob_matrix(i+1, Z_temp, T_arrays, lattice_size, Temp))
+y_arr = backward_sample(probability_array, lattice_size)
+#sample an image
+print(convert_y_arr_to_image(y_arr, lattice_size))
+
+
+
+
+
+#p45 = get_cond_prob_matrix(4, Z_temp, T_arrays, lattice_size, Temp)
+#p56 = get_cond_prob_matrix(5, Z_temp, T_arrays, lattice_size, Temp)
+#p67 = get_cond_prob_matrix(6, Z_temp, T_arrays, lattice_size, Temp)
+#p78 = get_cond_prob_matrix(7, Z_temp, T_arrays, lattice_size, Temp)
+#p8 = get_cond_prob_matrix(8, Z_temp, T_arrays, lattice_size, Temp)
 
