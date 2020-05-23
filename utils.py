@@ -227,6 +227,14 @@ def convert_y_to_image(y, lattice_size):
     return image
 
 
+# Computer Exercise 8
+def compute_empirical_expectation(i1, j1, i2, j2, samples):
+    normalizing_factor = len(samples)
+    sum = 0
+    for sample in samples:
+        sum += sample[i1][j1] * sample[i2][j2]
+    return sum/normalizing_factor
+
 print("Computer Exercise 7 output:")
 # Testing
 lattice_size = 3
