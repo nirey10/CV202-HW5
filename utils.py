@@ -1,16 +1,29 @@
 import numpy as np
 from scipy.ndimage.interpolation import shift
 
+print("------------------------------")
+
+
 # Computer Exercise 1
 def G(row_s, Temp):
-    return np.exp((1/Temp) * (row_s.T.dot(shift(row_s, -1, cval=0))))
+    return np.exp((1/Temp) * (row_s.T.dot(shift(row_s, -1))))
+
+
+print("Defined G.")
+print("------------------------------")
+
 
 # Computer Exercise 2
 def F(row_s, row_t, Temp):
     return np.exp((1/Temp) * (row_s.T.dot(row_t)))
 
+
+print("Defined F.")
+print("------------------------------")
+
+
 # Computer Exercise 3
-def compute_2x2_Lattice_Ztemp(Temp):
+def compute_2x2_Lattice_ZTemp(Temp):
     values = [-1, 1]
     res = 0
     for x_11 in values:
@@ -21,8 +34,16 @@ def compute_2x2_Lattice_Ztemp(Temp):
                     res += np.exp((1/Temp) * internal_sum)
     return res
 
+
+print("Computer Exercise 3 output:")
+print(compute_2x2_Lattice_ZTemp(1.0))
+print(compute_2x2_Lattice_ZTemp(1.5))
+print(compute_2x2_Lattice_ZTemp(2.0))
+print("------------------------------")
+
+
 # Computer Exercise 4
-def compute_3x3_Lattice_Ztemp(Temp):
+def compute_3x3_Lattice_ZTemp(Temp):
     values = [-1, 1]
     res = 0
     for x_11 in values:
@@ -37,27 +58,34 @@ def compute_3x3_Lattice_Ztemp(Temp):
                                         internal_sum = x_11*x_12 + x_11*x_21 + x_12*x_22 + x_21*x_22\
                                                         + x_12*x_13 + x_13*x_23 + x_22*x_23 + x_21*x_31\
                                                         + x_22*x_32 + x_31*x_32 + x_32*x_33 + x_23* x_33
-
                                         res += np.exp((1/Temp) * internal_sum)
     return res
 
 
-def y2row(y,width=8):
+print("Computer Exercise 4 output:")
+print(compute_3x3_Lattice_ZTemp(1.0))
+print(compute_3x3_Lattice_ZTemp(1.5))
+print(compute_3x3_Lattice_ZTemp(2.0))
+print("------------------------------")
+
+
+def y2row(y, width=8):
     """
     y: an integer in (0,...,(2**width)-1)
     """
-    if not 0<=y<=(2**width)-1:
+    if not 0 <= y <= (2**width)-1:
         raise ValueError(y)
-    my_str=np.binary_repr(y,width=width)
+    my_str = np.binary_repr(y, width=width)
     # my_list = map(int,my_str) # Python 2
-    my_list = list(map(int,my_str)) # Python 3
+    my_list = list(map(int, my_str))  # Python 3
     my_array = np.asarray(my_list)
-    my_array[my_array==0]=-1
-    row=my_array
+    my_array[my_array == 0] = -1
+    row = my_array
     return row
 
+
 # Computer Exercise 5
-def compute_efficient_2x2_Lattice_Ztemp(Temp):
+def compute_efficient_2x2_Lattice_ZTemp(Temp):
     y_s = [0, 1, 2, 3]
     res = 0
     for i in y_s:
@@ -67,8 +95,16 @@ def compute_efficient_2x2_Lattice_Ztemp(Temp):
             res += G(y1, Temp)*G(y2, Temp)*F(y1, y2, Temp)
     return res
 
+
+print("Computer Exercise 5 output:")
+print(compute_efficient_2x2_Lattice_ZTemp(1.0))
+print(compute_efficient_2x2_Lattice_ZTemp(1.5))
+print(compute_efficient_2x2_Lattice_ZTemp(2.0))
+print("------------------------------")
+
+
 # Computer Exercise 6
-def compute_efficient_3x3_Lattice_Ztemp(Temp):
+def compute_efficient_3x3_Lattice_ZTemp(Temp):
     y_s = [0, 1, 2, 3, 4, 5, 6, 7]
     res = 0
     for i in y_s:
@@ -81,114 +117,134 @@ def compute_efficient_3x3_Lattice_Ztemp(Temp):
     return res
 
 
+print("Computer Exercise 6 output:")
+print(compute_efficient_3x3_Lattice_ZTemp(1.0))
+print(compute_efficient_3x3_Lattice_ZTemp(1.5))
+print(compute_efficient_3x3_Lattice_ZTemp(2.0))
+print("------------------------------")
+
+
 # Computer Exercise 7
-def get_T_arrays_and_Ztemp(lattice_size, Temp):
-    T_arrays = [[] * pow(2, lattice_size)] * (lattice_size-1)
-    final_res = 0
-    T_arr = [1]*pow(2, lattice_size)
-    for i in range(lattice_size-1):
-        T_arr = calc_T(lattice_size, Temp, T_arr)
-        T_arrays[i] = T_arr
-        print('T' + str(i+1) + ': ' + str(T_arr))
+def get_T_arrays(lattice_size, Temp):
+    T_arrays = [[]] * lattice_size
+    # final_res = 0
+    prev_T = [1] * pow(2, lattice_size)  # T_0
+    for k in range(lattice_size-1):
+        curr_T = calc_T(lattice_size, Temp, prev_T)
+        T_arrays[k] = curr_T
+        # print('T' + str(k+1) + ': ' + str(curr_T))
+        prev_T = curr_T
 
     # Printing the last T, the normalizing factor Z_temp
-    for i in range(pow(2, lattice_size)):
-        y1_vector = y2row(i, width=lattice_size)
-        final_res += T_arr[i] * G(y1_vector, Temp)
-    print('T' + str(lattice_size) + ' = Z: ' + str(final_res))
-    return final_res, T_arrays
+    T_arrays[lattice_size - 1] = 0
+    for y_last in range(pow(2, lattice_size)):
+        y_last_vector = y2row(y_last, width=lattice_size)
+        T_arrays[lattice_size-1] += curr_T[y_last] * G(y_last_vector, Temp)
+    # print('T' + str(lattice_size) + ' = Z: ' + str(T_arrays[lattice_size-1]))
+    return T_arrays
 
-def calc_T(lattice_size, Temp, prev_arr):
+
+def calc_T(lattice_size, Temp, prev_T):
     T_vec = [0]*pow(2, lattice_size)
     res = 0
-    for i in range(pow(2, lattice_size)):
+    for y2 in range(pow(2, lattice_size)):
         temp_sum = 0
-        for j in range(pow(2, lattice_size)):
-            y1_vector = y2row(j, width=lattice_size)
-            y2_vector = y2row(i, width=lattice_size)
-            temp_res = G(y1_vector, Temp) * F(y1_vector, y2_vector, Temp)*prev_arr[j]
-            temp_sum += temp_res
-            res += temp_res
-        T_vec[i] = temp_sum
+        for y1 in range(pow(2, lattice_size)):
+            y1_vector = y2row(y1, width=lattice_size)
+            y2_vector = y2row(y2, width=lattice_size)
+            temp_sum += G(y1_vector, Temp) * F(y1_vector, y2_vector, Temp)*prev_T[y1]
+            # res += temp_res
+        T_vec[y2] = temp_sum
     return T_vec
 
-def get_cond_prob_matrix(prob_k, Z_temp, T_arrays, lattice_size, Temp):
-    k = prob_k-1
-    if prob_k is lattice_size: # for p(y8) in lattice_size = 8 case
-        res_matrix = [0]*pow(2, lattice_size)
-        for i in range(pow(2, lattice_size)):
-            y_vector = y2row(i, width=lattice_size)
-            res_matrix[i] = T_arrays[k-1][i] * G(y_vector, Temp) / Z_temp
+
+def get_p_k(k, ZTemp, T, lattice_size, Temp):
+    k -= 1  # converting to array indexes (was in range 1,..,lattice_size)
+    if k == lattice_size-1:  # for p_last(y_last)
+        res_matrix = np.ndarray((2**lattice_size , 1), dtype=float)
+        # res_matrix = [0] * pow(2, lattice_size)
+        for y_last in range(pow(2, lattice_size)):
+            y_last_vector = y2row(y_last, width=lattice_size)
+            res_matrix[y_last] = (T[lattice_size-2][y_last] * G(y_last_vector, Temp)) / ZTemp
+        return res_matrix
+    elif k == 0:  # p_(1|2)(y1|y2)
+        # res_matrix = [[0] * pow(2, lattice_size)] * pow(2, lattice_size)
+        res_matrix = np.ndarray((2**lattice_size, 2**lattice_size), dtype=float)
+        for y1 in range(pow(2, lattice_size)):
+            y1_vector = y2row(y1, width=lattice_size)
+            for y2 in range(pow(2, lattice_size)):
+                y2_vector = y2row(y2, width=lattice_size)
+                res_matrix[y1][y2] = (F(y1_vector, y2_vector, Temp) * G(y1_vector, Temp)) / T[0][y2]
         return res_matrix
     else:
-        if prob_k is 1: # for p(y1|y2)
-            res_matrix = [[0] * pow(2, lattice_size)] * pow(2, lattice_size)
-            for i in range(pow(2, lattice_size)):
-                y1_vector = y2row(i, width=lattice_size)
-                for j in range(pow(2, lattice_size)):
-                    y2_vector = y2row(j, width=lattice_size)
-                    # notice that i are the rows (y1), j are the columns (y2)
-                    res_matrix[j][i] = F(y1_vector, y2_vector, Temp) * G(y1_vector, Temp) / T_arrays[k][j]
-            return res_matrix
-        else:
-            res_matrix = [[0] * pow(2, lattice_size)] * pow(2, lattice_size)
-            for i in range(pow(2, lattice_size)):
-                y1_vector = y2row(i, width=lattice_size)
-                for j in range(pow(2, lattice_size)):
-                    y2_vector = y2row(j, width=lattice_size)
-                    # notice that i are the rows (y1), j are the columns (y2)
-                    res_matrix[j][i] = F(y1_vector, y2_vector, Temp) * G(y1_vector, Temp) * T_arrays[k-1][i]/ T_arrays[k][j]
-            return res_matrix
+        # res_matrix = [[0] * pow(2, lattice_size)] * pow(2, lattice_size)
+        res_matrix = np.ndarray((2 ** lattice_size, 2 ** lattice_size), dtype=float)
+        for y_k in range(pow(2, lattice_size)):
+            y_k_vector = y2row(y_k, width=lattice_size)
+            for y_kplus1 in range(pow(2, lattice_size)):
+                y_kplus1_vector = y2row(y_kplus1, width=lattice_size)
+                res_matrix[y_k][y_kplus1] = (F(y_k_vector, y_kplus1_vector, Temp) * G(y_k_vector, Temp) * T[k-1][y_k]) / T[k][y_kplus1]
+        return res_matrix
 
 
-def backward_sample(p_arrays, lattice_size):
-    y_arr = [0]*lattice_size
-    y_lattice_size = np.random.choice(pow(2, lattice_size), 1, p=p_arrays[lattice_size-1])
-    y_arr[lattice_size-1] = y_lattice_size[0]
-    for i in range(lattice_size-1):
-        prev_index = y_arr[lattice_size-i - 1]
-        new_rand = np.random.choice(pow(2, lattice_size), 3, p=p_arrays[lattice_size - i - 2][prev_index])
-        y_arr[lattice_size-i - 2] = new_rand[0]
-    return y_arr
+def calc_p(ZTemp, T, lattice_size, Temp):
+    p = []
+    for k in range(1, lattice_size+1):
+        p.append(get_p_k(k, ZTemp, T, lattice_size, Temp))
+    return p
 
-def convert_y_arr_to_image(y_arr, lattice_size):
-    image = [[]*lattice_size]*lattice_size
+
+def backward_sample(p, lattice_size):
+    y = [0]*lattice_size
+    y[lattice_size-1] = np.random.choice(pow(2, lattice_size), p=p[lattice_size-1][:, 0])
+    k = lattice_size - 2
+    while k >= 0:
+        y[k] = np.random.choice(pow(2, lattice_size), p=p[k][:, y[k+1]])
+        k -= 1
+    # for k in range(lattice_size-1):
+    #     prev_y = y_arr[lattice_size - k - 1]
+    #     new_rand = np.random.choice(pow(2, lattice_size), p=p[lattice_size - k - 1][prev_y])
+    #     y_arr[lattice_size-i - 2] = new_rand[0]
+    return y
+
+
+def convert_y_to_image(y, lattice_size):
+    # image = [[]*lattice_size]*lattice_size
+    image = np.ndarray((lattice_size, lattice_size))
     index = 0
-    for row in y_arr:
-        row_values = [int(i) for i in list('{0:0b}'.format(row))]
-        missing_zeros = lattice_size - len(row_values)
-        padded_row_values = np.pad(row_values, (missing_zeros, 0), 'constant')
-        image[index] = padded_row_values
-        index += 1
-    np_image = np.array([arr for arr in image])
-    return np_image
+    for i in range(len(y)):
+        # row_values = [int(i) for i in list('{0:0b}'.format(row))]
+        row = y2row(y[i], width=lattice_size)
+        for j in range(len(row)):
+            if row[j] == 0:
+                row[j] = -1
+        # missing_zeros = lattice_size - len(row_values)
+        # padded_row_values = np.pad(row_values, (missing_zeros, 0), 'constant')
+        # image[index] = padded_row_values
+        # index += 1
+        image[i] = row
+    # np_image = np.array([arr for arr in image])
+    return image
 
+
+print("Computer Exercise 7 output:")
 # Testing
-lattice_size = 4
+lattice_size = 3
 
-
-'''
-*****READ****
-the code below generates 1 image of the size (lattice_size x lattice_size) and for Temp=1
-if it is reasonable results whats left is to generate images as requested and bunch them with plt.imshow
-'''
-
-Temp = 1
-probability_array = []*lattice_size
-Z_temp, T_arrays = get_T_arrays_and_Ztemp(lattice_size, Temp)
-for i in range(lattice_size):
-    probability_array.append(get_cond_prob_matrix(i+1, Z_temp, T_arrays, lattice_size, Temp))
-y_arr = backward_sample(probability_array, lattice_size)
-#sample an image
-print(convert_y_arr_to_image(y_arr, lattice_size))
-
-
-
-
-
-#p45 = get_cond_prob_matrix(4, Z_temp, T_arrays, lattice_size, Temp)
-#p56 = get_cond_prob_matrix(5, Z_temp, T_arrays, lattice_size, Temp)
-#p67 = get_cond_prob_matrix(6, Z_temp, T_arrays, lattice_size, Temp)
-#p78 = get_cond_prob_matrix(7, Z_temp, T_arrays, lattice_size, Temp)
-#p8 = get_cond_prob_matrix(8, Z_temp, T_arrays, lattice_size, Temp)
-
+for Temp in [1.0, 1.5, 2.0]:
+    Ts = get_T_arrays(lattice_size, Temp)
+    ZTemp = Ts[-1]
+    print("Temp: " + str(Temp))
+    # for i in range(lattice_size):
+    #     print("T" + str(i+1) + ": " + str(Ts[i]))
+    p = calc_p(ZTemp, Ts, lattice_size, Temp)
+    # for i in range(lattice_size):
+    #     print("p" + str(i+1) + ":")
+    #     print(str(p[i]))
+    y = backward_sample(p, lattice_size)
+    print("y:")
+    print(y)
+    y_image = convert_y_to_image(y, lattice_size)
+    print("image:")
+    print(y_image)
+    print("---------------")
