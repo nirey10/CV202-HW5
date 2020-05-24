@@ -1,5 +1,5 @@
 import numpy as np
-from ex7 import get_T_arrays, calc_T, get_p_k, calc_p, backward_sample, convert_y_to_image
+from ex7 import get_T_arrays, calc_p, backward_sample, convert_y_to_image
 import time
 
 

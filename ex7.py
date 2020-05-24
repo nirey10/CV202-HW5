@@ -136,9 +136,10 @@ if __name__ == "__main__":
         for n in range(NSAMPLES):
             y = backward_sample(p, lattice_size)
             y_image = convert_y_to_image(y, lattice_size)
-            ax[i, n].imshow(y_image, interpolation="None", vmin=-1, vmax=1, cmap="gray")
+            t = ax[i, n].imshow(y_image, interpolation="None", vmin=-1, vmax=1, cmap="gray")
             ax[i, n].set_xticks([]), ax[i, n].set_yticks([])
         e = time.time()
         print("Done (" + str(round(e - s, 2)) + " secs).")
         print("---------------")
+    fig.colorbar(t, ax=ax.ravel().tolist())
     plt.show()
